@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="/javascripts/encode.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/javascripts/domParse.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+    	var parse = function ( str ) {
+    		// 解码
+    		// DOMParse
+    		// 验证、校验
+    		// 
+    		var results = '';
+    		try {
+    			// unescape ： 解码，反转义
+    			HTMLParser( he.unescape(str,{strict: true}),{
+    				start: function ( tag, attrs, unary ) {
+    					if ( tag == 'script' || tag == 'style' || tag == 'link' || tag == 'iframe' || tag =='frame') return;
+    					results += '<' + tag;
+    					// for ( var i=0, len=attrs.length; i<len;i++) {
+    					// 	results += " " + attrs[i].name + '="' + attrs[ i ].escaped +'"';
+    					// }
+    					results += ( unary?"/":"")+">";
+    				},
+    				end: function ( tag ) {
+    					results +="</"+ tag +">";
+    				},
+    				chars: function ( text ) {
+    					results += text;
+    				},
+    				comment: function ( text ) {
+    					results += '<!--' + text + "-->";
+    				}
+    			});
+    			return results;
+    		} catch ( e ) {
+    			console.log( e );
+    		} finally {
+
+    		}
+    	}
+    </script>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+
+    <textarea name="name" rows="8" cols="80" id="txt">
+    	<p>sks <img src="null" onerror="alert(1)"></p>
+    </textarea>
+    <button type="button" name="button" id="btn">评论</button>
+    <button type="button" name="button" id="get">获取评论</button>
+
+    <script type="text/javascript">
+    	var oBtn = document.getElementById('btn'),
+    		oGet = document.getElementById('get'),
+    		oTxt = document.getElementById('txt');
+
+    	var addHandler = document.body.addEventListener?
+    		function ( target, eventType, handler ) {
+    			target.addEventListener(eventType, handler, false );
+    		}:
+    		function ( target, eventType, handler ) {
+    			target.attachEvent( 'on' + eventType, handler );
+    		};
+    	addHandler( oBtn, 'click', function () {
+    		var xhr = new XMLHttpRequest();
+    		var url = '/comment?comment=' + oTxt.value;
+    		xhr.open('GET', url, true );
+    		// 监听服务端和客户端通信的过程和进度
+    		xhr.onreadystatechange = function () {
+    			if ( xhr.readyState == 4) {
+    				if ( xhr.status == 200) {
+    					console.log( xhr );
+    				}else {
+    					console.error( 'error');
+    				}
+    			}
+    		};
+
+    		xhr.send();
+    	});
+
+    	addHandler( oGet, 'click', function () {
+    		var xhr = new XMLHttpRequest();
+    		var url = '/getComment';
+    		xhr.open('GET', url, true );
+    		xhr.onreadystatechange = function () {
+    			if ( xhr.readyState == 4 ) {
+    				if ( xhr.status == 200 ) {
+    					console.log( xhr.response );
+    					var com = parse(JSON.parse(xhr.response).comment);
+    					var txt = document.createElement('span');
+    					txt.innerHTML = com;
+    					document.body.appendChild(txt);
+    				} else {
+    					console.error('error');
+    				}
+    			}
+    		}
+    		xhr.send();
+    	});
+
+
+
+    </script>
+  </body>
+</html>
